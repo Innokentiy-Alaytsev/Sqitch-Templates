@@ -32,8 +32,10 @@ CREATE TABLE [%- table or change %] (
 	[%- IF null.item( loop.index ) == 'NOT NULL' -%]
  NOT NULL
 	[%- END -%]
-	[%- IF unique( loop.index ) == 'true' -%]
+	[%- IF unique.item( loop.index ) == 'true' -%]
+		[%- IF pkey.grep ('^'col'$').size -%]
  UNIQUE
+ 		[%- END -%]
 	[%- END -%]
 	[%- IF default.item( loop.index ) -%]
  DEFAULT [% default.item (loop.index) %]

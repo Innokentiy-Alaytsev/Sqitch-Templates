@@ -32,6 +32,11 @@ col_has_default   [%#%]
 col_hasnt_default [%#%]
 [%- END -%]
 ( '[% table or change %]', '[% col %]' );
+[% IF unique.item( loop.index ) == 'true' -%]
+		[%- IF pkey.grep ('^'col'$').size -%]
+SELECT col_is_unique     ( '[% table or change %]', '[% col %]' );
+ 		[%- END -%]
+[%- END -%]
 [% END -%]
 
 [%- FOREACH fk IN fkey %]
