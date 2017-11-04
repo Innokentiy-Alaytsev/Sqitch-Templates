@@ -1,0 +1,88 @@
+-- Test [% change %]
+SET client_min_messages TO warning;
+CREATE EXTENSION IF NOT EXISTS pgtap;
+RESET client_min_messages;
+
+BEGIN;
+SELECT no_plan();
+-- SELECT plan(1);
+
+SET search_path TO [% IF schema %][% schema %], [% END %]public;
+
+
+SELECT has_table ('[% table or change %]');
+SELECT has_pk    ('[% table or change %]');
+
+[% FOREACH col IN column %]
+-- [% table or change %].[% col %]
+SELECT has_column        ( '[% table or change %]', '[% col %]' );
+SELECT col_type_is       ( '[% table or change %]', '[% col %]', '[% type.item( loop.index ).lower or 'text' %]' );
+[%- SWITCH null.item( loop.index ) %]
+[%-	CASE 'NOT NULL'%]
+SELECT col_not_null      ( '[% table or change %]', '[% col %]' );
+[%-	CASE 'NULL'%]
+SELECT col_is_null       ( '[% table or change %]', '[% col %]' );
+[%-	CASE DEFAULT %]
+-- No NULL constraints for [% col %]
+[%- END %]
+SELECT [%#%]
+[%- IF default.item( loop.index ) -%]
+col_has_default   [%#%]
+[%- ELSE -%]
+col_hasnt_default [%#%]
+[%- END -%]
+( '[% table or change %]', '[% col %]' );
+[% END -%]
+
+[%- FOREACH fk IN fkey %]
+-- [% table or change %] FOREIGN KEY [% fk %]
+[%- BLOCK ref_table_name -%]
+	[%- IF refschm.item (loop.index) AND (refschm.item (loop.index) != schema) -%]
+	[%-	refschm.item (loop.index) -%].
+	[%- END -%]
+	[%- reftbl.item (loop.index) %]
+[%- END -%]
+
+SELECT col_is_fk ('[% table or change %]', '[% fk %]');
+SELECT fk_ok ('[% table or change %]', '[% fk %]', '[% PROCESS ref_table_name %]', '[%- refattr.item (loop.index) %]');
+[% END -%]
+
+-- [% table or change %] PRIMARY KEY [% fk %]
+SELECT col_is_pk ('[% table or change %]', ARRAY[ [% FOREACH pk IN pkey -%]'[% pk %]'[% loop.last? '' : ', ' %][% END -%] ]);
+
+
+PREPARE insert_with_defaults AS
+	INSERT INTO access_control.ac_creditials
+		DEFAULT VALUES;
+
+[% IF null.grep ('^NOT NULL$').size OR fkey.size -%]
+SELECT throws_ok ('insert_with_defaults');
+[%- ELSE -%]
+SELECT lives_ok ('insert_with_defaults');
+[%- END %]
+
+
+[%- IF fkey.size -%]
+[%- BLOCK column_list -%]
+	[%- FOREACH col IN column -%]
+		[%- col %][% loop.last? '' : ', ' -%]
+	[%- END -%]
+[%- END -%]
+
+[%- BLOCK column_value_list -%]
+	[%- FOREACH col IN column -%]
+gen_random_uuid ()::[% type.item (loop.index) %][% loop.last? '' : ', ' -%]
+	[%- END -%]
+[%- END %]
+
+PREPARE insert_with_nonexistent_fk AS
+	INSERT
+		INTO [% IF schema %][% schema %].[% END %][% table or change %] ([% PROCESS column_list %])
+		VALUES ([% PROCESS column_value_list %]);
+
+SELECT throws_ok ('insert_with_nonexistent_fk');
+
+[% END -%]
+
+SELECT finish();
+ROLLBACK;

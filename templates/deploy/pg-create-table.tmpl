@@ -1,0 +1,74 @@
+-- Deploy [% project %]:[% change %] to [% engine %]
+[% FOREACH item IN requires -%]
+-- requires: [% item %]
+[% END -%]
+[% FOREACH item IN conflicts -%]
+-- conflicts: [% item %]
+[% END -%]
+
+BEGIN;
+
+SET LOCAL search_path TO [% IF schema %][% schema %], [% END %]public;
+
+[%- BLOCK ref_table_name -%]
+	[%- IF refschm.item (loop.index) AND (refschm.item (loop.index) != schema) -%]
+	[%-	refschm.item (loop.index) -%].
+	[%- END -%]
+	[%- reftbl.item (loop.index) %]
+[%- END -%]
+
+[%- BLOCK ref_attr_name -%]
+	[%- IF refschm.item (loop.index) -%]
+	[%-	refschm.item (loop.index) -%].
+	[%- END -%]
+	[%- reftbl.item (loop.index) %].
+      [%- refattr.item (loop.index) %]
+[%- END -%]
+
+
+CREATE TABLE [%- table or change %] (
+[%- FOREACH col IN column %]
+	[% col %] [% type.item( loop.index ) or 'TEXT' %]
+	[%- IF null.item( loop.index ) == 'NOT NULL' -%]
+ NOT NULL
+	[%- END -%]
+	[%- IF unique( loop.index ) == 'true' -%]
+ UNIQUE
+	[%- END -%]
+	[%- IF default.item( loop.index ) -%]
+ DEFAULT [% default.item (loop.index) %]
+	[%- END -%]
+	[%- not loop.last or pkey or fkey ? ',' : '' -%]
+[% END -%]
+
+[% IF pkey %]
+	CONSTRAINT PK_[%- table or change %]_
+		          [%- FOREACH pk IN pkey -%]
+		          [%-	pk %][% loop.last ? '' : '_' %]
+		          [%- END %]
+		PRIMARY KEY ([%- FOREACH pk IN pkey -%]
+		             [%-	pk %][% loop.last? '' : ', ' %]
+		             [%- END -%])
+		             [%- fkey ? ',' : '' %]
+[% END -%]
+
+[%- FOREACH fk IN fkey %]
+	CONSTRAINT FK_[%- table or change %]_
+				  [%- fk %]
+		FOREIGN KEY ([% fk %])
+		REFERENCES [% PROCESS ref_table_name %] ([% refattr.item (loop.index) %])
+		MATCH [% match.item (loop.index) %]
+		ON UPDATE [% onupd.item (loop.index) %]
+		ON DELETE [% ondel.item (loop.index) %][% loop.last? '' : ',' %]
+[% END -%]
+)[% IF not oids %]
+WITH (
+	OIDS=FALSE
+);[% END %]
+[% IF comment %]
+COMMENT ON TABLE access_control.ac_creditials
+	IS '[% comment %]';
+[% END -%]
+
+
+COMMIT;
