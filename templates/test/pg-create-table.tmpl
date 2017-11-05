@@ -49,7 +49,11 @@ SELECT col_is_unique     ( '[% table or change %]', '[% col %]' );
 [%- END -%]
 
 SELECT col_is_fk ('[% table or change %]', '[% fk %]');
-SELECT fk_ok ('[% table or change %]', '[% fk %]', '[% PROCESS ref_table_name %]', '[%- refattr.item (loop.index) %]');
+[% IF refschm.item (loop.index) AND (refschm.item (loop.index) != schema) -%]
+SELECT fk_ok ('[% schema %]', '[% table or change %]', '[% fk %]', '[% refschm.item (loop.index) %]', '[% reftbl.item (loop.index) %]', '[% refattr.item (loop.index) %]');
+[%- ELSE -%]
+SELECT fk_ok ('[% table or change %]', '[% fk %]', '[% reftbl.item (loop.index) %]', '[%- refattr.item (loop.index) %]');
+[%- END %]
 [% END -%]
 
 -- [% table or change %] PRIMARY KEY [% fk %]
