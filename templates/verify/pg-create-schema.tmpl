@@ -1,0 +1,9 @@
+-- Verify [% project %]:[% change %] on [% engine %]
+
+BEGIN;
+
+
+SELECT pg_catalog.has_schema_privilege ('[% schema or change %]', 'usage');
+
+
+ROLLBACK;

@@ -1,0 +1,21 @@
+-- Deploy [% project %]:[% change %] to [% engine %]
+[% FOREACH item IN requires -%]
+-- requires: [% item %]
+[% END -%]
+[% FOREACH item IN conflicts -%]
+-- conflicts: [% item %]
+[% END -%]
+
+
+BEGIN;
+
+
+CREATE SCHEMA [%- schema or change %];
+
+[%- IF comment %]
+COMMENT ON SCHEMA [% schema or change %]
+	IS '[% comment %]';
+[% END -%]
+
+
+COMMIT;

@@ -1,0 +1,9 @@
+-- Revert [% project %]:[% change %] on [% engine %]
+
+BEGIN;
+
+
+DROP SCHEMA [% schema or change %];
+
+
+COMMIT;
