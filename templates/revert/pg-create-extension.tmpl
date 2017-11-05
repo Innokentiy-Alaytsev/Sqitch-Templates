@@ -1,0 +1,18 @@
+-- Revert [% project %]:[% change %] from [% engine %]
+
+BEGIN;
+
+
+DO LANGUAGE plpgsql $$
+	BEGIN
+		DROP EXTENSION IF EXISTS "[% extension or change %]";
+	EXCEPTION
+		WHEN dependent_objects_still_exist THEN
+		-- Exception of this type indicates that extension is used somewhere
+		-- else id DB. It is not safe to DELETE CASCADE it, because it may brake
+		-- another part of DB.
+	END
+$$;
+
+
+COMMIT;

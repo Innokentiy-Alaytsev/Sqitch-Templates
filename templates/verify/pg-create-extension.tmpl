@@ -1,0 +1,9 @@
+-- Verify [% project %]:[% change %] on [% engine %]
+
+BEGIN;
+
+SELECT 1/COUNT(*)
+  FROM pg_catalog.pg_extension
+ WHERE extname = '[% extension or change %]';
+
+ROLLBACK;

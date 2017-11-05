@@ -1,0 +1,19 @@
+-- Deploy [% project %]:[% change %] to [% engine %]
+[% FOREACH item IN requires -%]
+-- requires: [% item %]
+[% END -%]
+[% FOREACH item IN conflicts -%]
+-- conflicts: [% item %]
+[% END -%]
+
+BEGIN;
+
+CREATE EXTENSION IF NOT EXISTS "[% extension or change %]"
+[%- IF schema %]
+	SCHEMA [% schema %]
+[%- END %]
+[%- IF version %]
+	VERSION '[% version %]';
+[%- END %]
+
+COMMIT;
