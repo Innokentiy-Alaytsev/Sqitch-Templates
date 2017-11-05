@@ -69,7 +69,7 @@ WITH (
 );[% END %]
 
 [% IF comment -%]
-COMMENT ON TABLE [% IF schema %][% schema %].[% END %].[% table or change %]
+COMMENT ON TABLE [% IF schema %][% schema %].[% END %][% table or change %]
 	IS '[% comment %]';
 [%- END %]
 
