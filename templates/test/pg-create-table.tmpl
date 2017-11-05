@@ -61,7 +61,7 @@ SELECT col_is_pk ('[% table or change %]', ARRAY[ [% FOREACH pk IN pkey -%]'[% p
 
 
 PREPARE insert_with_defaults AS
-	INSERT INTO access_control.ac_creditials
+	INSERT INTO [% IF schema %][% schema %].[% END %][% table or change %]
 		DEFAULT VALUES;
 
 [% IF null.grep ('^NOT NULL$').size OR fkey.size -%]
