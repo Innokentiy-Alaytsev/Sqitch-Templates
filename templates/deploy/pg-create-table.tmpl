@@ -67,10 +67,10 @@ CREATE TABLE [%- table or change %] (
 WITH (
 	OIDS=FALSE
 );[% END %]
-[% IF comment %]
-COMMENT ON TABLE access_control.ac_creditials
-	IS '[% comment %]';
-[% END -%]
 
+[% IF comment -%]
+COMMENT ON TABLE [% IF schema %][% schema %].[% END %].[% table or change %]
+	IS '[% comment %]';
+[%- END %]
 
 COMMIT;
